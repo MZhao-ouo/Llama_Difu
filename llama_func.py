@@ -59,7 +59,7 @@ def construct_index(api_key, file_list, index_name, max_input_size=4096, num_out
     if not raw:
         save_index(index, index_name)
         newlist = refresh_json_list(plain=True)
-        return newlist, newlist
+        return gr.Dropdown.update(choices=newlist), gr.Dropdown.update(choices=newlist)
     else:
         save_index(index, index_name, exist_ok=True)
         return index
