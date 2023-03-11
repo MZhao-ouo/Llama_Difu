@@ -1,12 +1,13 @@
+<div align="right">
+  <!-- 语言: -->
+  简体中文 | <a title="English" href="README_en.md">English</a>
+</div>
+
 # Llama_difu —— Llama Do it for You
 
 [![LICENSE](https://img.shields.io/github/license/MZhao-ouo/Llama_difu)](https://github.com/MZhao-ouo/Llama_difu/blob/main/LICENSE)
 [![Web-UI](https://img.shields.io/badge/WebUI-Gradio-fb7d1a?style=flat)](https://gradio.app/)
 [![base](https://img.shields.io/badge/Base-Llama_index-cdc4d6?style=flat&logo=github)](https://github.com/jerryjliu/gpt_index)
-
----
-
-简体中文 / [English](README_en.md)
 
 ---
 
