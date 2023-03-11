@@ -12,6 +12,8 @@ node_modules
 
 .vscode
 
+args.json
+
 __pycache__
 
 index

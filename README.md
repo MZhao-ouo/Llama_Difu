@@ -59,3 +59,16 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+**(Optional) default api-key**
+
+Create  `args.json` :
+
+```json
+{
+    "api-key": "",
+    "host": "127.0.0.1",
+    "port": 7860,
+    "share": false
+}
+```

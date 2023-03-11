@@ -1,13 +1,17 @@
 import gradio as gr
 import os
+import json
 
 from llama_func import *
 from utils import *
 from presets import *
 
-os.environ['OPENAI_API_KEY'] = ""
+if os.path.exists("args.json"):
+    with open("args.json", "r") as f:
+        args = json.load(f)
+    
 
-with gr.Blocks() as llama_difu:
+with gr.Blocks() as demo:
     chat_context = gr.State([])
     new_google_chat_context = gr.State([])
     
@@ -15,7 +19,7 @@ with gr.Blocks() as llama_difu:
         with gr.Column(scale=1):
             with gr.Box():
                 gr.Markdown("**OpenAI API-Key**")
-                api_key = gr.Textbox(show_label=False, placeholder="Please enter your OpenAI API-key",label="OpenAI API-Key", value="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", type="password").style(container=False)
+                api_key = gr.Textbox(show_label=False, placeholder="Please enter your OpenAI API-key",label="OpenAI API-Key", value=args["api-key"], type="password").style(container=False)
         with gr.Column(scale=3):
             with gr.Box():
                 gr.Markdown("**Select Index**")
@@ -25,6 +29,23 @@ with gr.Blocks() as llama_difu:
                     with gr.Column(min_width=30, scale=1):
                         index_refresh_btn = gr.Button("🔄").style()
         
+        
+    with gr.Tab("Chat"):
+        with gr.Row():
+            with gr.Column(scale=1):
+                chat_tone = gr.Radio(["创意", "平衡", "精确"], label="Chatbot Tone", type="index", value="平衡")
+            with gr.Column(scale=3):
+                search_options_checkbox = gr.CheckboxGroup(label="Search Option", choices=["🔍 New Google", "🔍 New Baidu", "🔍 Customize"])
+        chatbot = gr.Chatbot()
+        with gr.Row():
+            with gr.Column(min_width=50, scale=1):
+                chat_empty_btn = gr.Button("🧹", variant="secondary")
+            with gr.Column(scale=12):
+                chat_input = gr.Textbox(show_label=False, placeholder="Type here...").style(container=False)
+            with gr.Column(min_width=50, scale=1):
+                chat_submit_btn = gr.Button("🚀", variant="primary")
+        suggested_user_turns = gr.Dropdown(choices=[], label="Suggested User Turns")
+
 
     with gr.Tab("Ask"):
         with gr.Box():
@@ -44,22 +65,7 @@ with gr.Blocks() as llama_difu:
             answer = gr.Markdown("")
 
 
-    with gr.Tab("New Google"):
-        with gr.Row():
-            chat_tone = gr.Radio(["Creative", "Balanced", "Precise"], label="Chatbot Tone", type="index", value="Balanced")
-            search_options_checkbox = gr.CheckboxGroup(label="Search Options", choices=["🔍 Search Google", "🔍 Search Baidu", "🔍 Manual Search"])
-        chatbot = gr.Chatbot()
-        with gr.Row():
-            with gr.Column(min_width=50, scale=1):
-                chat_empty_btn = gr.Button("🧹", variant="secondary")
-            with gr.Column(scale=12):
-                chat_input = gr.Textbox(show_label=False, placeholder="Type here...").style(container=False)
-            with gr.Column(min_width=50, scale=1):
-                chat_submit_btn = gr.Button("🚀", variant="primary")
-        suggested_user_turns = gr.Dropdown(choices=[], label="Suggested User Turns")
-
-
-    with gr.Tab("Construct"):
+    with gr.Tab("自定index"):
         with gr.Row():
             with gr.Column():
                 upload_file = gr.Files(label="Upload Files(Support .txt, .pdf, .epub, .docx)")
@@ -96,6 +102,5 @@ with gr.Blocks() as llama_difu:
     json_confirm_btn.click(display_json, [json_select], [json_display])
     json_refresh_btn.click(refresh_json_list, None, [json_select])
 
-
-if __name__ == '__main__':
-    llama_difu.queue().launch(share=True)
+if __name__ == "__main__":
+    demo.queue().launch(server_name=args["host"], server_port=args["port"], share=args["share"])
