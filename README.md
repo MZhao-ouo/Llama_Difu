@@ -6,63 +6,69 @@
 
 ---
 
-A Web-UI for [Llama_index](https://github.com/jerryjliu/gpt_index) (gpt_index). Allow ChatGPT to access your own content, even databases!
+简体中文 / [English](README_en.md)
 
-## Feature
+---
 
-- [X] Allow ChatGPT to access your own database
-- [X] New Google: like new Bing, but uses Google!
-- [X] Simple Query
-- [X] Simple Construct index (Only support GPTSimpleVectorIndex now)
-  - [X] support .txt, .pdf, .docx, .epub
-- [X] Customize prompt template
-- [X] Customize PromptHelper
-- [X] .json View
-- [X] Chat
-- [X] Multi-files support
-- [ ] More LLMPredictor
-- [ ] More Index methods
+为 [Llama_index](https://github.com/jerryjliu/gpt_index) (gpt_index)做了个便于使用的图形界面。可以让ChatGPT访问自定义的内容，甚至是数据库！
 
-## Screenshot
+## 特点
 
-**Ask Mode**
+* [X] 允许ChatGPT访问您自己的数据库
+* [X] 新谷歌：像新必应一样，但使用谷歌！
+* [X] 简单查询
+* [X] 简单构建索引（目前仅支持GPTSimpleVectorIndex）
+  * [X] 支持 .txt，.pdf，.docx，.epub
+* [X] 自定义提示模板
+* [X] 自定义PromptHelper
+* [X] .json视图
+* [X] 聊天
+* [X] 多文件支持
+* [ ] 更多LLMPredictor
+* [ ] 更多索引方法
+
+## 截图
+
+**提问模式**
+
 ![image](https://user-images.githubusercontent.com/70903329/224219711-b2ff45d7-7584-479b-9ddf-0e44a42a93b1.png)
 
-**New Google**
+**新谷歌**
 
-Check the "Search Google" checkbox, the chatbot will search the web for you and generate contents based on that. Just like the New Bing, but uses Google!
+选中“Search Google”复选框，聊天机器人将为您搜索网络，并基于此生成内容。就像新必应一样，但使用谷歌！
 
-It's recommended to use the Balanced or Precise mode when using New Google.
+建议在使用新谷歌时使用平衡或精确模式。
 
-![image](https://user-images.githubusercontent.com/70903329/224219722-92f0d8b9-3100-4009-95b9-5d406d3d951f.png)
+![image](https://user-images.githubusercontent.com/70903329/224219711-b2ff45d7-7584-479b-9ddf-0e44a42a93b1.png)
 
-**Construct your own index**
+**构建自己的索引**
+
 ![image](https://user-images.githubusercontent.com/70903329/224219727-725d865d-a3fb-40a9-ba6f-8bc2e3448d15.png)
 
-## Usage
+## 用法
 
-**Clone this repo**
+**克隆此仓库**
 
 ```bash
 git clone https://github.com/MZhao-ouo/Llama_difu.git
 cd Llama_difu
 ```
 
-**Install dependencies**
+**安装依赖项**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**Run**
+**运行**
 
 ```bash
 python main.py
 ```
 
-**(Optional) default api-key**
+**(可选) 默认API密钥**
 
-Create  `args.json` :
+创建 `args.json` 文件：
 
 ```json
 {
