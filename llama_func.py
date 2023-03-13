@@ -27,11 +27,7 @@ def construct_index(api_key, file_src, index_name,
     
     documents = []
     for file in file_src:
-        if isinstance(file, str):
-            BeautifulSoupWebReader = download_loader("BeautifulSoupWebReader")
-            loader = BeautifulSoupWebReader()
-            documents += loader.load_data(file)
-        elif os.path.splitext(file.name)[1] == '.pdf':
+        if os.path.splitext(file.name)[1] == '.pdf':
             CJKPDFReader = download_loader("CJKPDFReader")
             loader = CJKPDFReader()
             documents += loader.load_data(file=file.name)
@@ -43,13 +39,17 @@ def construct_index(api_key, file_src, index_name,
             EpubReader = download_loader("EpubReader")
             loader = EpubReader()
             documents += loader.load_data(file=file.name)
+        elif "http" in file:
+            BeautifulSoupWebReader = download_loader("BeautifulSoupWebReader")
+            loader = BeautifulSoupWebReader()
+            documents += loader.load_data(file)
         else:
             with open(file.name, 'r', encoding="utf-8") as f:
                 documents += [Document(f.read())]
 
     # Customizing LLM
     llm_predictor = LLMPredictor(llm=OpenAI(model_name="gpt-3.5-turbo", openai_api_key=api_key))
-    prompt_helper = PromptHelper(max_input_size, num_outputs, max_chunk_overlap, embedding_limit, chunk_size_limit, separator)
+    prompt_helper = PromptHelper(max_input_size, num_outputs, max_chunk_overlap, embedding_limit, chunk_size_limit, separator=separator)
 
     index = GPTSimpleVectorIndex(documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper)
 

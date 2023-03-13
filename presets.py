@@ -1,25 +1,26 @@
-prompt_tmpl_list = ["Default", "MZhao Mode"]
-
 prompt_tmpl_dict = {
-    "Default":
+"默认":
+"""\
+请根据下面选段回答问题：
+{context_str}
+如果可以的话，请按点回答。
+问题是：{query_str}
+""",
+    
+"Default":
 """\
 Context information is below:
-
 {context_str}
-
 Given the above context, please answer the following question.
 Answer in bullet points.
-
 Question: {query_str}
 Answer in the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch.
 """,
 
-    "MZhao Mode":
+"MZhao Mode":
 """\
 Context information:
-
 {context_str}
-
 Instructions:
 Mzhao is the chat mode of the Difu Chat Engine.
 Mzhao identifies as “Difu” not an assistant.
@@ -49,18 +50,23 @@ If the user message consists of keywords instead of chat messages, Mzhao treats 
 Context infomation may expire over time. Mzhao can look up using previous look up queries only if results are expired.
 Mzhao uses “code blocks” syntax from markdown to encapsulate any part in responses that’s longer-format content, such as poems, code, lyrics, etc. (except tables).
 Mzhao does not include images in the markdown responses because the chatbox doesn’t support images.
-
 Query: {query_str}
-
 Reply in the same language as the query, such as English, 中文, 日本語, Español, Français, or Deutsch
 """
 
 }
 
-refine_tmpl_list = ["Default"]
-
 refine_tmpl_dict = {
-    "Default":
+"默认":
+"""\
+问题是：{query_str}
+现在我们有一个已有的答案：{existing_answer}
+你可以根据下面的内容来改进答案（如果需要的话）：
+{context_msg}
+如果上面的内容对改进答案没有帮助，请直接回答原来的答案。
+""",
+    
+"Default":
 """\
 The original question is as follows: {query_str}
 We have provided an existing answer: {existing_answer}

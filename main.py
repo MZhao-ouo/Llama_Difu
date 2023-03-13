@@ -58,10 +58,10 @@ with gr.Blocks() as demo:
             tempurature = gr.Slider(0, 2, 0.5, step=0.1, label="回答灵活性", interactive=True, show_label=True)
         with gr.Row():
             with gr.Column():
-                tmpl_select = gr.Radio(prompt_tmpl_list, value="MZhao Mode", label="Prompt模板", interactive=True)
+                tmpl_select = gr.Radio(list(prompt_tmpl_dict.keys()), value="MZhao Mode", label="Prompt模板", interactive=True)
                 prompt_tmpl = gr.Textbox(value=prompt_tmpl_dict["MZhao Mode"] ,lines=10, max_lines=40 ,show_label=False)
             with gr.Column():
-                refine_select = gr.Radio(refine_tmpl_list, value="Default", label="Refine模板", interactive=True)
+                refine_select = gr.Radio(list(refine_tmpl_dict.keys()), value="Default", label="Refine模板", interactive=True)
                 refine_tmpl = gr.Textbox(value=refine_tmpl_dict["Default"] ,lines=10, max_lines=40 ,show_label=False)
 
 
