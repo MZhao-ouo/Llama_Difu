@@ -9,6 +9,12 @@ from presets import *
 if os.path.exists("args.json"):
     with open("args.json", "r") as f:
         args = json.load(f)
+else:
+    args = {}
+    args["api-key"] = ""
+    args["host"] = "127.0.0.1"
+    args["port"] = 7860
+    args["share"] = False
     
 
 with gr.Blocks() as demo:
