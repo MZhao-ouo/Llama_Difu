@@ -10,30 +10,13 @@ import openai
 
 from utils import *
 
-def save_index(index, index_name, exist_ok=False):
-    file_path = f"./index/{index_name}.json"
-
-    if not os.path.exists(file_path) or exist_ok:
-        index.save_to_disk(file_path)
-        print(f'Saved file "{file_path}".')
-    else:
-        i = 1
-        while True:
-            new_file_path = f'{os.path.splitext(file_path)[0]}_{i}{os.path.splitext(file_path)[1]}'
-            if not os.path.exists(new_file_path):
-                index.save_to_disk(new_file_path)
-                print(f'Saved file "{new_file_path}".')
-                break
-            i += 1
-
-def construct_index(api_key, file_list, index_name, 
+def construct_index(api_key, file_src, index_name, 
                     max_input_size=4096, 
                     num_outputs=512, 
                     max_chunk_overlap=20, 
                     chunk_size_limit=None,
                     embedding_limit=None,
-                    separator=" ",
-                    raw=False):
+                    separator=" "):
     
     if chunk_size_limit == 0:
         chunk_size_limit = None
@@ -43,27 +26,26 @@ def construct_index(api_key, file_list, index_name,
         separator = " "
     
     documents = []
-    if not raw:
-        txt_set = []
-        for file in file_list:
-            if os.path.splitext(file.name)[1] == '.pdf':
-                CJKPDFReader = download_loader("CJKPDFReader")
-                loader = CJKPDFReader()
-                documents += loader.load_data(file=file.name)
-            elif os.path.splitext(file.name)[1] == '.docx':
-                DocxReader = download_loader("DocxReader")
-                loader = DocxReader()
-                documents += loader.load_data(file=file.name)
-            elif os.path.splitext(file.name)[1] == '.epub':
-                EpubReader = download_loader("EpubReader")
-                loader = EpubReader()
-                documents += loader.load_data(file=file.name)
-            else:
-                with open(file.name, 'r', encoding="utf-8") as f:
-                    txt_set.append(f.read())
-                documents += [Document(k) for k in txt_set]
-    else:
-        documents += [Document(k.text.encode("UTF-8", errors="strict").decode()) for k in file_list]
+    for file in file_src:
+        if isinstance(file, str):
+            BeautifulSoupWebReader = download_loader("BeautifulSoupWebReader")
+            loader = BeautifulSoupWebReader()
+            documents += loader.load_data(file)
+        elif os.path.splitext(file.name)[1] == '.pdf':
+            CJKPDFReader = download_loader("CJKPDFReader")
+            loader = CJKPDFReader()
+            documents += loader.load_data(file=file.name)
+        elif os.path.splitext(file.name)[1] == '.docx':
+            DocxReader = download_loader("DocxReader")
+            loader = DocxReader()
+            documents += loader.load_data(file=file.name)
+        elif os.path.splitext(file.name)[1] == '.epub':
+            EpubReader = download_loader("EpubReader")
+            loader = EpubReader()
+            documents += loader.load_data(file=file.name)
+        else:
+            with open(file.name, 'r', encoding="utf-8") as f:
+                documents += [Document(f.read())]
 
     # Customizing LLM
     llm_predictor = LLMPredictor(llm=OpenAI(model_name="gpt-3.5-turbo", openai_api_key=api_key))
@@ -71,108 +53,45 @@ def construct_index(api_key, file_list, index_name,
 
     index = GPTSimpleVectorIndex(documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper)
 
-    if not raw:
-        save_index(index, index_name)
-        newlist = refresh_json_list(plain=True)
-        return gr.Dropdown.update(choices=newlist), gr.Dropdown.update(choices=newlist)
-    else:
-        save_index(index, index_name, exist_ok=True)
-        return index
+    save_index(index, index_name)
+    newlist = refresh_json_list(plain=True)
+    return gr.Dropdown.update(choices=newlist), gr.Dropdown.update(choices=newlist)
 
-def chat_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, chat_tone ,context, chatbot, search_mode=[], suggested_user_question = ""):
+def chat_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, chat_tone ,context, chatbot, search_mode=[]):
     os.environ["OPENAI_API_KEY"] = api_key
+    
     print(f"Question: {question}")
-    if question=="":
-        question = suggested_user_question
 
     temprature = 2 if chat_tone == 0 else 1 if chat_tone == 1 else 0.5
-
-    if not search_mode:
-        response = ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, temprature, context)
-    else:
-        print(f"You asked: {question}")
-        BeautifulSoupWebReader = download_loader("BeautifulSoupWebReader")
-        loader = BeautifulSoupWebReader()
-        chat = OpenAI(model_name="gpt-3.5-turbo", openai_api_key=api_key)
-        search_terms = chat.generate([f"Please extract search terms from the user’s question. The search terms is a concise sentence, which will be searched on Google to obtain relevant information to answer the user’s question, too generalized search terms doesn’t help. Please provide no more than two search terms. Please provide the most relevant search terms only, the search terms should directly correspond to the user’s question. Please separate different search items with commas, with no quote marks. The user’s question is: {question}"]).generations[0][0].text.strip()
-        search_terms = search_terms.replace('"', '')
-        search_terms = search_terms.replace(".", "")
-        links = []
-        for keywords in search_terms.split(","):
-            keywords = keywords.strip()
-            for search_engine in search_mode:
-                if "Google" in search_engine:
-                    print(f"Googling: {keywords}")
-                    search_iter = google_search(keywords, num_results=5)
-                    links += [next(search_iter) for _ in range(10)]
-                if "Baidu" in search_engine:
-                    print(f"Baiduing: {keywords}")
-                    search_results = baidu_search(keywords, num_results=5)
-                    links += [i["url"] for i in search_results if i["url"].startswith("http") and (not "@" in i["url"])]
-                if "Manual" in search_engine:
-                    print(f"Searching manually: {keywords}")
-                    print("Please input links manually. (Enter 'q' to quit.)")
-                    while True:
-                        link = input("请手动输入一个链接：\n")
-                        if link == "q":
-                            break
-                        else:
-                            links.append(link)
-        links = list(set(links))
-        if len(links) == 0:
-            msg = "No links found."
-            print(msg)
-            chatbot.append((question, msg))
-            return context, chatbot, gr.Dropdown.update(choices=[])
-        print("Extracting data from links...")
-        print('\n'.join(links))
-        documents = loader.load_data(urls=links)
-        # convert to utf-8 encoding
-
-        index = construct_index(api_key, documents, " ".join(search_terms.split(",")), raw=True)
-
-        print("Generating response...")
-        response = ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl,sim_k, temprature, context, raw = index)
-    response = response.split("\n")
-    suggested_next_turns = []
-    for index, line in enumerate(response):
-        if "next user turn" in line:
-            suggested_next_turns = response[index+1:]
-            response = response[:index]
-            break
-    suggested_next_turns = [i.split()[1] for i in suggested_next_turns]
+    index_select = search_construct(api_key, question, search_mode, index_select) if search_mode else index_select
+        
+    response = ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl, sim_k, temprature, context)
     response = "\n".join(response)
     response = parse_text(response)
+    
     context.append({"role": "user", "content": question})
     context.append({"role": "assistant", "content": response})
     chatbot.append((question, response))
+    
     os.environ["OPENAI_API_KEY"] = ""
-    return context, chatbot, gr.Dropdown.update(choices=suggested_next_turns)
+    return context, chatbot
 
 
-
-def ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl, sim_k=1, temprature=0, prefix_messages=[], raw = None):
+def ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl, sim_k=1, temprature=0, prefix_messages=[]):
     os.environ["OPENAI_API_KEY"] = api_key
-    if raw is not None:
-        index = raw
-    else:
-        index = load_index(index_select)
 
+    index = load_index(index_select)
     qa_prompt = QuestionAnswerPrompt(prompt_tmpl)
     rf_prompt = RefinePrompt(refine_tmpl)
+    llm_predictor = LLMPredictor(llm=OpenAI(temperature=temprature, model_name="gpt-3.5-turbo", prefix_messages=prefix_messages))
 
-    llm_predictor = LLMPredictor(llm=OpenAI(temperature=temprature, model_name="gpt-3.5-turbo", openai_api_key=api_key, prefix_messages=prefix_messages))
-
-    response = index.query(question,
-                           llm_predictor=llm_predictor,
-                           similarity_top_k=sim_k, 
-                           text_qa_template=qa_prompt, 
-                           refine_template=rf_prompt)
+    response = index.query(question, llm_predictor=llm_predictor, similarity_top_k=sim_k, text_qa_template=qa_prompt, refine_template=rf_prompt)
 
     print(f"Response: {response.response}")
+    
     os.environ["OPENAI_API_KEY"] = ""
     return response.response
-
+        
 
 def load_index(index_name):
     index_path = f"./index/{index_name}.json"
@@ -189,3 +108,39 @@ def display_json(json_select):
     documents = JSONReader().load_data(f"./index/{json_select}.json")
 
     return documents[0]
+
+def search_construct(api_key, question, search_mode, index_select):
+    print(f"You asked: {question}")
+    chat = OpenAI(model_name="gpt-3.5-turbo", openai_api_key=api_key)
+    search_terms = chat.generate([f"Please extract search terms from the user’s question. The search terms is a concise sentence, which will be searched on Google to obtain relevant information to answer the user’s question, too generalized search terms doesn’t help. Please provide no more than two search terms. Please provide the most relevant search terms only, the search terms should directly correspond to the user’s question. Please separate different search items with commas, with no quote marks. The user’s question is: {question}"]).generations[0][0].text.strip()
+    search_terms = search_terms.replace('"', '')
+    search_terms = search_terms.replace(".", "")
+    links = []
+    for keywords in search_terms.split(","):
+        keywords = keywords.strip()
+        for search_engine in search_mode:
+            if "Google" in search_engine:
+                print(f"Googling: {keywords}")
+                search_iter = google_search(keywords, num_results=5)
+                links += [next(search_iter) for _ in range(10)]
+            if "Baidu" in search_engine:
+                print(f"Baiduing: {keywords}")
+                search_results = baidu_search(keywords, num_results=5)
+                links += [i["url"] for i in search_results if i["url"].startswith("http") and (not "@" in i["url"])]
+            if "Manual" in search_engine:
+                print(f"Searching manually: {keywords}")
+                print("Please input links manually. (Enter 'q' to quit.)")
+                while True:
+                    link = input("请手动输入一个链接：\n")
+                    if link == "q":
+                        break
+                    else:
+                        links.append(link)
+    links = list(set(links))
+    if len(links) == 0:
+        return index_select
+    print("Extracting data from links...")
+    print('\n'.join(links))
+    search_index_name = " ".join(search_terms.split(","))
+    construct_index(api_key, links, search_index_name)
+    return search_index_name
