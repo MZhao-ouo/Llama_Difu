@@ -66,7 +66,6 @@ def chat_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, ch
     index_select = search_construct(api_key, question, search_mode, index_select) if search_mode else index_select
         
     response = ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl, sim_k, temprature, context)
-    response = "\n".join(response)
     response = parse_text(response)
     
     context.append({"role": "user", "content": question})
