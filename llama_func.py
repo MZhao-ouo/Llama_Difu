@@ -1,6 +1,6 @@
 import os
 from llama_index import GPTSimpleVectorIndex, SimpleDirectoryReader, download_loader
-from llama_index import Document, LLMPredictor, PromptHelper, QuestionAnswerPrompt, JSONReader
+from llama_index import Document, LLMPredictor, PromptHelper, QuestionAnswerPrompt, RefinePrompt, JSONReader
 from langchain.llms import OpenAIChat, OpenAI
 from zipfile import ZipFile
 from googlesearch import search as google_search
@@ -26,7 +26,22 @@ def save_index(index, index_name, exist_ok=False):
                 break
             i += 1
 
-def construct_index(api_key, file_list, index_name, max_input_size=4096, num_outputs=512, max_chunk_overlap=20, raw=False):
+def construct_index(api_key, file_list, index_name, 
+                    max_input_size=4096, 
+                    num_outputs=512, 
+                    max_chunk_overlap=20, 
+                    chunk_size_limit=None,
+                    embedding_limit=None,
+                    separator=" ",
+                    raw=False):
+    
+    if chunk_size_limit == 0:
+        chunk_size_limit = None
+    if embedding_limit == 0:
+        embedding_limit = None
+    if separator == "":
+        separator = " "
+    
     documents = []
     if not raw:
         txt_set = []
@@ -51,8 +66,8 @@ def construct_index(api_key, file_list, index_name, max_input_size=4096, num_out
         documents += [Document(k.text.encode("UTF-8", errors="strict").decode()) for k in file_list]
 
     # Customizing LLM
-    llm_predictor = LLMPredictor(llm=OpenAI(temperature=0, model_name="gpt-3.5-turbo", openai_api_key=api_key))
-    prompt_helper = PromptHelper(max_input_size, num_outputs, max_chunk_overlap)
+    llm_predictor = LLMPredictor(llm=OpenAI(model_name="gpt-3.5-turbo", openai_api_key=api_key))
+    prompt_helper = PromptHelper(max_input_size, num_outputs, max_chunk_overlap, embedding_limit, chunk_size_limit, separator)
 
     index = GPTSimpleVectorIndex(documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper)
 
@@ -64,21 +79,16 @@ def construct_index(api_key, file_list, index_name, max_input_size=4096, num_out
         save_index(index, index_name, exist_ok=True)
         return index
 
-def chat_ai(api_key, index_select, question, prompt_tmpl, sim_k, chat_tone ,context, chatbot, search_mode=[], suggested_user_question = ""):
+def chat_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, chat_tone ,context, chatbot, search_mode=[], suggested_user_question = ""):
     os.environ["OPENAI_API_KEY"] = api_key
     print(f"Question: {question}")
     if question=="":
         question = suggested_user_question
 
-    if chat_tone == 0:
-        temprature = 2
-    elif chat_tone == 1:
-        temprature = 1
-    else:
-        temprature = 0.5
+    temprature = 2 if chat_tone == 0 else 1 if chat_tone == 1 else 0.5
 
     if not search_mode:
-        response = ask_ai(api_key, index_select, question, prompt_tmpl, sim_k, temprature, context)
+        response = ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, temprature, context)
     else:
         print(f"You asked: {question}")
         BeautifulSoupWebReader = download_loader("BeautifulSoupWebReader")
@@ -122,7 +132,7 @@ def chat_ai(api_key, index_select, question, prompt_tmpl, sim_k, chat_tone ,cont
         index = construct_index(api_key, documents, " ".join(search_terms.split(",")), raw=True)
 
         print("Generating response...")
-        response = ask_ai(api_key, index_select, question, prompt_tmpl, sim_k, temprature, context, raw = index)
+        response = ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl,sim_k, temprature, context, raw = index)
     response = response.split("\n")
     suggested_next_turns = []
     for index, line in enumerate(response):
@@ -141,22 +151,23 @@ def chat_ai(api_key, index_select, question, prompt_tmpl, sim_k, chat_tone ,cont
 
 
 
-def ask_ai(api_key, index_select, question, prompt_tmpl, sim_k=1, temprature=0, prefix_messages=[], raw = None):
+def ask_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl, sim_k=1, temprature=0, prefix_messages=[], raw = None):
     os.environ["OPENAI_API_KEY"] = api_key
     if raw is not None:
         index = raw
     else:
         index = load_index(index_select)
 
-    prompt = QuestionAnswerPrompt(prompt_tmpl)
+    qa_prompt = QuestionAnswerPrompt(prompt_tmpl)
+    rf_prompt = RefinePrompt(refine_tmpl)
 
     llm_predictor = LLMPredictor(llm=OpenAI(temperature=temprature, model_name="gpt-3.5-turbo", openai_api_key=api_key, prefix_messages=prefix_messages))
 
-    try:
-        response = index.query(question, llm_predictor=llm_predictor, similarity_top_k=sim_k, text_qa_template=prompt)
-    except:
-        traceback.print_exc()
-        return ""
+    response = index.query(question,
+                           llm_predictor=llm_predictor,
+                           similarity_top_k=sim_k, 
+                           text_qa_template=qa_prompt, 
+                           refine_template=rf_prompt)
 
     print(f"Response: {response.response}")
     os.environ["OPENAI_API_KEY"] = ""

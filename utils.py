@@ -31,6 +31,10 @@ def change_prompt_tmpl(tmpl_select):
     new_tmpl = prompt_tmpl_dict[tmpl_select]
     return gr.update(value=new_tmpl)
 
+def change_refine_tmpl(refine_select):
+    new_tmpl = refine_tmpl_dict[refine_select]
+    return gr.update(value=new_tmpl)
+
 def parse_text(text):
     lines = text.split("\n")
     lines = [line for line in lines if line != ""]

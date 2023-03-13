@@ -25,7 +25,7 @@ with gr.Blocks() as demo:
                 gr.Markdown("**选择索引**")
                 with gr.Row():
                     with gr.Column(scale=12):
-                        index_select = gr.Dropdown(choices=refresh_json_list(plain=True), show_label=False).style(container=False)
+                        index_select = gr.Dropdown(choices=refresh_json_list(plain=True), show_label=False, multiselect=False).style(container=False)
                     with gr.Column(min_width=30, scale=1):
                         index_refresh_btn = gr.Button("🔄").style()
         
@@ -44,15 +44,19 @@ with gr.Blocks() as demo:
                 chat_input = gr.Textbox(show_label=False, placeholder="在此输入...").style(container=False)
             with gr.Column(min_width=50, scale=1):
                 chat_submit_btn = gr.Button("🚀", variant="primary")
-        suggested_user_turns = gr.Dropdown(choices=[], label="推荐的回复")
+        suggested_user_turns = gr.Dropdown(choices=[], label="推荐的回复", multiselect=False)
 
 
     with gr.Tab("对话设置"):
         with gr.Row():
-            sim_k = gr.Slider(1, 10, 1, step=1, label="尝试次数", interactive=True, show_label=True)
+            sim_k = gr.Slider(1, 10, 1, step=1, label="优化次数", interactive=True, show_label=True)
             tempurature = gr.Slider(0, 2, 0.5, step=0.1, label="回答灵活性", interactive=True, show_label=True)
-        tmpl_select = gr.Radio(prompt_tmpl_list, value="MZhao Mode", label="Prompt模板", interactive=True)
-        prompt_tmpl = gr.Textbox(value=prompt_tmpl_dict["MZhao Mode"] ,lines=10, max_lines=40 ,show_label=False)
+        with gr.Row():
+            tmpl_select = gr.Radio(prompt_tmpl_list, value="MZhao Mode", label="Prompt模板", interactive=True)
+            refine_select = gr.Radio(refine_tmpl_list, value="Default", label="Refine模板", interactive=True)
+        with gr.Row():
+            prompt_tmpl = gr.Textbox(value=prompt_tmpl_dict["MZhao Mode"] ,lines=10, max_lines=40 ,show_label=False)
+            refine_tmpl = gr.Textbox(value=refine_tmpl_dict["Default"] ,lines=10, max_lines=40 ,show_label=False)
 
 
     with gr.Tab("构建索引"):
@@ -60,11 +64,14 @@ with gr.Blocks() as demo:
             with gr.Column():
                 upload_file = gr.Files(label="上传文件(支持 .txt, .pdf, .epub, .docx等)")
                 with gr.Row():
-                    max_input_size = gr.Slider(256, 4096, 4096, step=1, label="提问tokens限制", interactive=True, show_label=True)
-                    num_outputs = gr.Slider(256, 4096, 512, step=1, label="回答tokens限制", interactive=True, show_label=True)
+                    max_input_size = gr.Slider(256, 4096, 4096, step=1, label="每次输入tokens限制", interactive=True, show_label=True)
+                    num_outputs = gr.Slider(256, 4096, 512, step=1, label="总结tokens限制", interactive=True, show_label=True)
                 with gr.Row():
-                    max_chunk_overlap = gr.Slider(0, 100, 20, step=1, label="选段重复度（单位tokens）", interactive=True, show_label=True)
-                    chunk_size_limit = gr.Slider(256, 4096, 512, step=1, label="选段长度限制", interactive=True, show_label=True)
+                    max_chunk_overlap = gr.Slider(0, 100, 20, step=1, label="选段重复度", interactive=True, show_label=True)
+                    chunk_size_limit = gr.Slider(0, 4096, 0, step=1, label="选段长度限制（0为自动）", interactive=True, show_label=True)
+                with gr.Row():
+                    embedding_limit = gr.Slider(0, 100, 0, step=1, label="Embedding限制（0为自动）", interactive=True, show_label=True)
+                    separator = gr.Textbox(show_label=False, label="分隔符", placeholder="分隔符，默认为空格", value="", interactive=True)
                 new_index_name = gr.Textbox(placeholder="新索引名称：", show_label=False).style(container=False)
                 construct_btn = gr.Button("⚒️ 构建", variant="primary")
             with gr.Row():
@@ -80,17 +87,19 @@ with gr.Blocks() as demo:
                
     index_refresh_btn.click(refresh_json_list, None, [index_select])
                
-    chat_input.submit(chat_ai, [api_key, index_select, chat_input, prompt_tmpl, sim_k, chat_tone, chat_context, chatbot, search_options_checkbox, suggested_user_turns], [chat_context, chatbot, suggested_user_turns])
+    chat_input.submit(chat_ai, [api_key, index_select, chat_input, prompt_tmpl, refine_tmpl, sim_k, chat_tone, chat_context, chatbot, search_options_checkbox, suggested_user_turns], [chat_context, chatbot, suggested_user_turns])
     chat_input.submit(reset_textbox, [], [chat_input])
-    chat_submit_btn.click(chat_ai, [api_key, index_select, chat_input, prompt_tmpl, sim_k, chat_tone, chat_context, chatbot, search_options_checkbox, suggested_user_turns], [chat_context, chatbot, suggested_user_turns])
+    chat_submit_btn.click(chat_ai, [api_key, index_select, chat_input, prompt_tmpl, refine_tmpl, sim_k, chat_tone, chat_context, chatbot, search_options_checkbox, suggested_user_turns], [chat_context, chatbot, suggested_user_turns])
     chat_submit_btn.click(reset_textbox, [], [chat_input])
     chat_empty_btn.click(lambda: ([], []), None, [chat_context, chatbot])
     
     tmpl_select.change(change_prompt_tmpl, [tmpl_select], [prompt_tmpl])
+    refine_select.change(change_refine_tmpl, [refine_select], [refine_tmpl])
 
-    construct_btn.click(construct_index, [api_key, upload_file, new_index_name, max_input_size, num_outputs, max_chunk_overlap], [index_select, json_select])
+    construct_btn.click(construct_index, [api_key, upload_file, new_index_name, max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit, embedding_limit, separator], [index_select, json_select])
     json_confirm_btn.click(display_json, [json_select], [json_display])
     json_refresh_btn.click(refresh_json_list, None, [json_select])
 
 if __name__ == "__main__":
+    demo.title = "Llama Do it for You!"
     demo.queue().launch(server_name=args["host"], server_port=args["port"], share=args["share"])
