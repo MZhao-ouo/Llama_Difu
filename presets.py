@@ -1,12 +1,4 @@
-prompt_tmpl_dict = {
-"默认":
-"""\
-请根据下面选段回答问题：
-{context_str}
-如果可以的话，请按点回答。
-问题是：{query_str}
-""",
-    
+prompt_tmpl_dict = {    
 "Default":
 """\
 Context information is below:
@@ -14,6 +6,18 @@ Context information is below:
 Given the above context, please answer the following question.
 Answer in bullet points.
 Question: {query_str}
+Answer in the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch.
+""",
+
+"New Default":
+"""\
+Context information is below.
+---------------------
+{context_str}
+---------------------
+Given the context information and not prior knowledge, 
+answer the question: {query_str}
+Answer in bullet points.
 Answer in the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch.
 """,
 
@@ -56,16 +60,7 @@ Reply in the same language as the query, such as English, 中文, 日本語, Esp
 
 }
 
-refine_tmpl_dict = {
-"默认":
-"""\
-问题是：{query_str}
-现在我们有一个已有的答案：{existing_answer}
-你可以根据下面的内容来改进答案（如果需要的话）：
-{context_msg}
-如果上面的内容对改进答案没有帮助，请直接回答原来的答案。
-""",
-    
+refine_tmpl_dict = {    
 "Default":
 """\
 The original question is as follows: {query_str}
