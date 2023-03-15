@@ -55,7 +55,7 @@ def construct_index(api_key, file_src, index_name,
 
     save_index(index, index_name)
     newlist = refresh_json_list(plain=True)
-    return gr.Dropdown.update(choices=newlist), gr.Dropdown.update(choices=newlist)
+    return gr.Dropdown.update(choices=newlist, value=index_name), gr.Dropdown.update(choices=newlist, value=index_name)
 
 def chat_ai(api_key, index_select, question, prompt_tmpl, refine_tmpl ,sim_k, chat_tone ,context, chatbot, search_mode=[]):
     os.environ["OPENAI_API_KEY"] = api_key
