@@ -102,7 +102,7 @@ with gr.Blocks() as demo:
     tmpl_select.change(change_prompt_tmpl, [tmpl_select], [prompt_tmpl])
     refine_select.change(change_refine_tmpl, [refine_select], [refine_tmpl])
 
-    construct_btn.click(construct_index, [api_key, upload_file, new_index_name, max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit, embedding_limit, separator], [index_select, json_select])
+    construct_btn.click(construct_GPTSimpleVectorIndex, [api_key, upload_file, new_index_name, max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit, embedding_limit, separator], [index_select, json_select])
     json_confirm_btn.click(display_json, [json_select], [json_display])
     json_refresh_btn.click(refresh_json_list, None, [json_select])
 

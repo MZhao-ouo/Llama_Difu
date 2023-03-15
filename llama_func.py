@@ -10,21 +10,7 @@ import openai
 
 from utils import *
 
-def construct_index(api_key, file_src, index_name, 
-                    max_input_size=4096, 
-                    num_outputs=512, 
-                    max_chunk_overlap=20, 
-                    chunk_size_limit=None,
-                    embedding_limit=None,
-                    separator=" "):
-    
-    if chunk_size_limit == 0:
-        chunk_size_limit = None
-    if embedding_limit == 0:
-        embedding_limit = None
-    if separator == "":
-        separator = " "
-    
+def get_documents(file_src):
     documents = []
     for file in file_src:
         if os.path.splitext(file.name)[1] == '.pdf':
@@ -46,13 +32,28 @@ def construct_index(api_key, file_src, index_name,
         else:
             with open(file.name, 'r', encoding="utf-8") as f:
                 documents += [Document(f.read())]
+    return documents
 
-    # Customizing LLM
+
+def construct_GPTSimpleVectorIndex(api_key, file_src, index_name, 
+                                    max_input_size=4096, 
+                                    num_outputs=512, 
+                                    max_chunk_overlap=20, 
+                                    chunk_size_limit=None,
+                                    embedding_limit=None,
+                                    separator=" "):
+    chunk_size_limit = None if chunk_size_limit == 0 else chunk_size_limit
+    embedding_limit = None if embedding_limit == 0 else embedding_limit
+    separator = " " if separator == "" else separator
+    
     llm_predictor = LLMPredictor(llm=OpenAI(model_name="gpt-3.5-turbo", openai_api_key=api_key))
     prompt_helper = PromptHelper(max_input_size, num_outputs, max_chunk_overlap, embedding_limit, chunk_size_limit, separator=separator)
 
+    documents = get_documents(file_src)
+    
     index = GPTSimpleVectorIndex(documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper)
-
+    
+    index_name += "_GPTSimpleVectorIndex"
     save_index(index, index_name)
     newlist = refresh_json_list(plain=True)
     return gr.Dropdown.update(choices=newlist, value=index_name), gr.Dropdown.update(choices=newlist, value=index_name)
@@ -97,7 +98,8 @@ def load_index(index_name):
     if not os.path.exists(index_path):
         return None
 
-    index = GPTSimpleVectorIndex.load_from_disk(index_path)
+    if "GPTSimpleVectorIndex" in index_name:
+        index = GPTSimpleVectorIndex.load_from_disk(index_path)
     return index
 
 def display_json(json_select):
