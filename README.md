@@ -19,16 +19,10 @@
 
 * [X] 允许ChatGPT访问您自己的数据库
 * [X] 新谷歌：像新必应一样，但使用谷歌！
-* [X] 简单查询
-* [X] 简单构建索引（目前仅支持GPTSimpleVectorIndex）
-  * [X] 支持 .txt，.pdf，.docx，.epub
-* [X] 自定义提示模板
-* [X] 自定义PromptHelper
-* [X] .json视图
-* [X] 聊天
-* [X] 多文件支持
+* [X] 更方便、高级的索引构建
+* [X] 自定义Prompt模板
+* [X] 多文件支持（并且支持不同格式）
 * [ ] 更多LLMPredictor
-* [ ] 更多索引方法
 
 ## 用法
 

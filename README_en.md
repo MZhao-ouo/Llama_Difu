@@ -17,18 +17,14 @@ A Web-UI for [Llama_index](https://github.com/jerryjliu/gpt_index) (gpt_index). 
 
 ## Feature
 
-- [X] Allow ChatGPT to access your own database
-- [X] New Google: like new Bing, but uses Google!
-- [X] Simple Query
-- [X] Simple Construct index (Only support GPTSimpleVectorIndex now)
-  - [X] support .txt, .pdf, .docx, .epub
-- [X] Customize prompt template
-- [X] Customize PromptHelper
-- [X] .json View
-- [X] Chat
-- [X] Multi-files support
+## Features
+
+- [X] Allow ChatGPT to access your own databases
+- [X] New Google: Like New Bing, but using Google!
+- [X] More convenient and advanced index building
+- [X] Customizable Prompt templates
+- [X] Multi-file support (and support for different formats)
 - [ ] More LLMPredictor
-- [ ] More Index methods
 
 ## Usage
 
