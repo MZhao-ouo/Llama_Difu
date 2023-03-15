@@ -71,7 +71,7 @@ We have the opportunity to refine the existing answer
 {context_msg}
 ------------
 Given the new context, refine the original answer to better
-answer the question.
+Answer in the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch.
 If the context isn't useful, return the original answer.
 """
 }
