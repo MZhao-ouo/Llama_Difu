@@ -13,6 +13,8 @@
 
 为 [Llama_index](https://github.com/jerryjliu/gpt_index) (gpt_index)做了个便于使用的图形界面。可以让ChatGPT访问自定义的内容，甚至是数据库！
 
+![演示视频](https://user-images.githubusercontent.com/70903329/225239555-a29fa01b-e7ba-4041-bbce-187ac3f7d333.gif)
+
 ## 特点
 
 * [X] 允许ChatGPT访问您自己的数据库
@@ -27,24 +29,6 @@
 * [X] 多文件支持
 * [ ] 更多LLMPredictor
 * [ ] 更多索引方法
-
-## 截图
-
-**提问模式**
-
-![image](https://user-images.githubusercontent.com/70903329/224219711-b2ff45d7-7584-479b-9ddf-0e44a42a93b1.png)
-
-**新谷歌**
-
-选中“Search Google”复选框，聊天机器人将为您搜索网络，并基于此生成内容。就像新必应一样，但使用谷歌！
-
-建议在使用新谷歌时使用平衡或精确模式。
-
-![image](https://user-images.githubusercontent.com/70903329/224219711-b2ff45d7-7584-479b-9ddf-0e44a42a93b1.png)
-
-**构建自己的索引**
-
-![image](https://user-images.githubusercontent.com/70903329/224219727-725d865d-a3fb-40a9-ba6f-8bc2e3448d15.png)
 
 ## 用法
 
