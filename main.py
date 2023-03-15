@@ -31,7 +31,7 @@ with gr.Blocks() as demo:
                 gr.Markdown("**选择索引**")
                 with gr.Row():
                     with gr.Column(scale=12):
-                        index_select = gr.Dropdown(choices=refresh_json_list(plain=True), show_label=False, multiselect=False).style(container=False)
+                        index_select = gr.Dropdown(choices=refresh_json_list(plain=True), value="请选择索引文件", show_label=False, multiselect=False).style(container=False)
                     with gr.Column(min_width=30, scale=1):
                         index_refresh_btn = gr.Button("🔄").style()
         
@@ -68,28 +68,25 @@ with gr.Blocks() as demo:
     with gr.Tab("构建索引"):
         with gr.Row():
             with gr.Column():
+                index_type = gr.Dropdown(choices=["GPTSimpleVectorIndex", "GPTTreeIndex", "GPTKeywordTableIndex"], label="索引类型", value="GPTSimpleVectorIndex")
                 upload_file = gr.Files(label="上传文件(支持 .txt, .pdf, .epub, .docx等)")
-                with gr.Row():
-                    max_input_size = gr.Slider(256, 4096, 4096, step=1, label="每次输入tokens限制", interactive=True, show_label=True)
-                    num_outputs = gr.Slider(256, 4096, 512, step=1, label="总结tokens限制", interactive=True, show_label=True)
-                with gr.Row():
-                    max_chunk_overlap = gr.Slider(0, 100, 20, step=1, label="选段重复度", interactive=True, show_label=True)
-                    chunk_size_limit = gr.Slider(0, 4096, 0, step=1, label="选段长度限制（0为自动）", interactive=True, show_label=True)
-                with gr.Row():
-                    embedding_limit = gr.Slider(0, 100, 0, step=1, label="Embedding限制（0为自动）", interactive=True, show_label=True)
-                    separator = gr.Textbox(show_label=False, label="分隔符", placeholder="分隔符，默认为空格", value="", interactive=True)
                 new_index_name = gr.Textbox(placeholder="新索引名称：", show_label=False).style(container=False)
                 construct_btn = gr.Button("⚒️ 构建", variant="primary")
             with gr.Row():
                 with gr.Column():
                     with gr.Row():
-                        with gr.Column(min_width=50, scale=1):
-                            json_refresh_btn = gr.Button("🔄")
-                        with gr.Column(scale=7):
-                            json_select = gr.Dropdown(choices=refresh_json_list(plain=True), show_label=False, multiselect=False).style(container=False)
-                        with gr.Column(min_width=50, scale=1):
-                            json_confirm_btn = gr.Button("🔎")
-                    json_display = gr.JSON(label="查看所选json文件")
+                        max_input_size = gr.Slider(256, 4096, 4096, step=1, label="每次输入tokens限制", interactive=True, show_label=True)
+                        num_outputs = gr.Slider(256, 4096, 512, step=1, label="输出tokens限制", interactive=True, show_label=True)
+                    with gr.Row():
+                        max_chunk_overlap = gr.Slider(0, 100, 20, step=1, label="选段重复度", interactive=True, show_label=True)
+                        chunk_size_limit = gr.Slider(0, 4096, 0, step=1, label="选段长度限制（0为自动）", interactive=True, show_label=True)
+                    with gr.Row():
+                        embedding_limit = gr.Slider(0, 100, 0, step=1, label="Embedding限制（0为自动）", interactive=True, show_label=True)
+                        separator = gr.Textbox(show_label=False, label="分隔符", placeholder="分隔符，默认为空格", value="", interactive=True)
+                    with gr.Row():
+                        num_children = gr.Slider(2, 100, 10, step=1, label="子节点数量（当前索引类型不可用）", interactive=False, show_label=True)
+                        max_keywords_per_chunk = gr.Slider(1, 100, 10, step=1, label="每段关键词数量（当前索引类型不可用）", interactive=False, show_label=True)
+
                
     index_refresh_btn.click(refresh_json_list, None, [index_select])
                
@@ -102,9 +99,9 @@ with gr.Blocks() as demo:
     tmpl_select.change(change_prompt_tmpl, [tmpl_select], [prompt_tmpl])
     refine_select.change(change_refine_tmpl, [refine_select], [refine_tmpl])
 
-    construct_btn.click(construct_GPTSimpleVectorIndex, [api_key, upload_file, new_index_name, max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit, embedding_limit, separator], [index_select, json_select])
-    json_confirm_btn.click(display_json, [json_select], [json_display])
-    json_refresh_btn.click(refresh_json_list, None, [json_select])
+    index_type.change(lock_params, [index_type], [num_children, max_keywords_per_chunk])
+    construct_btn.click(construct_index, [api_key, upload_file, new_index_name, index_type, max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit, embedding_limit, separator, num_children], [index_select])
+    
 
 if __name__ == "__main__":
     demo.title = "Llama Do it for You!"

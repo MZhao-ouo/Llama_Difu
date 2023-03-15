@@ -51,6 +51,20 @@ def change_refine_tmpl(refine_select):
     new_tmpl = refine_tmpl_dict[refine_select]
     return gr.update(value=new_tmpl)
 
+def lock_params(index_type):
+    if index_type == "GPTSimpleVectorIndex":
+        return gr.Slider.update(interactive=False, label="子节点数量（当前索引类型不可用）"), gr.Slider.update(interactive=False, label="每段关键词数量（当前索引类型不可用）")
+    elif index_type == "GPTTreeIndex":
+        return gr.Slider.update(interactive=True, label="子节点数量"), gr.Slider.update(interactive=False, label="每段关键词数量（当前索引类型不可用）")
+    elif index_type == "GPTKeywordTableIndex":
+        return gr.Slider.update(interactive=False, label="子节点数量（当前索引类型不可用）"), gr.Slider.update(interactive=True, label="每段关键词数量")
+    
+def add_space(text):
+    punctuations = {'，': '， ', '。': '。 ', '？': '？ ', '！': '！ ', '：': '： ', '；': '； '}
+    for cn_punc, en_punc in punctuations.items():
+        text = text.replace(cn_punc, en_punc)
+    return text
+
 def parse_text(text):
     lines = text.split("\n")
     lines = [line for line in lines if line != ""]
