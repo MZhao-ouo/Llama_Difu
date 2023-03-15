@@ -68,7 +68,7 @@ with gr.Blocks() as demo:
     with gr.Tab("构建索引"):
         with gr.Row():
             with gr.Column():
-                index_type = gr.Dropdown(choices=["GPTSimpleVectorIndex", "GPTTreeIndex", "GPTKeywordTableIndex"], label="索引类型", value="GPTSimpleVectorIndex")
+                index_type = gr.Dropdown(choices=["GPTSimpleVectorIndex", "GPTTreeIndex", "GPTKeywordTableIndex", "GPTListIndex"], label="索引类型", value="GPTSimpleVectorIndex")
                 upload_file = gr.Files(label="上传文件(支持 .txt, .pdf, .epub, .docx等)")
                 new_index_name = gr.Textbox(placeholder="新索引名称：", show_label=False).style(container=False)
                 construct_btn = gr.Button("⚒️ 构建", variant="primary")

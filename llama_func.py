@@ -1,5 +1,5 @@
 import os
-from llama_index import GPTSimpleVectorIndex, GPTTreeIndex, GPTKeywordTableIndex
+from llama_index import GPTSimpleVectorIndex, GPTTreeIndex, GPTKeywordTableIndex, GPTListIndex
 from llama_index import SimpleDirectoryReader, download_loader
 from llama_index import Document, LLMPredictor, PromptHelper, QuestionAnswerPrompt, RefinePrompt
 from langchain.llms import OpenAIChat, OpenAI
@@ -67,6 +67,9 @@ def construct_index(api_key, file_src, index_name, index_type,
         elif index_type == "GPTKeywordTableIndex":
             index = GPTKeywordTableIndex(documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper, max_keywords_per_chunk=max_keywords_per_chunk)
             index_name += "_GPTKeywordTableIndex"
+        elif index_type == "GPTListIndex":
+            index = GPTListIndex(documents, llm_predictor=llm_predictor, prompt_helper=prompt_helper)
+            index_name += "_GPTListIndex"
     except Exception as e:
         print(e)
         return None
@@ -125,6 +128,10 @@ def ask_ai(api_key, index_select, question,
         response = index.query(question, llm_predictor=llm_predictor)
     elif "GPTKeywordTableIndex" in index_select:
         index = GPTKeywordTableIndex.load_from_disk(index_path)
+        response = index.query(question, llm_predictor=llm_predictor)
+    elif "GPTListIndex" in index_select:
+        index = GPTListIndex.load_from_disk(index_path)
+        qa_prompt = QuestionAnswerPrompt(prompt_tmpl)
         response = index.query(question, llm_predictor=llm_predictor)
 
     print(f"Response: {response.response}")

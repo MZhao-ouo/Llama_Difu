@@ -52,7 +52,7 @@ def change_refine_tmpl(refine_select):
     return gr.update(value=new_tmpl)
 
 def lock_params(index_type):
-    if index_type == "GPTSimpleVectorIndex":
+    if index_type == "GPTSimpleVectorIndex" or index_type == "GPTListIndex":
         return gr.Slider.update(interactive=False, label="子节点数量（当前索引类型不可用）"), gr.Slider.update(interactive=False, label="每段关键词数量（当前索引类型不可用）")
     elif index_type == "GPTTreeIndex":
         return gr.Slider.update(interactive=True, label="子节点数量"), gr.Slider.update(interactive=False, label="每段关键词数量（当前索引类型不可用）")
