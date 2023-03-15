@@ -13,6 +13,8 @@
 
 A Web-UI for [Llama_index](https://github.com/jerryjliu/gpt_index) (gpt_index). Allow ChatGPT to access your own content, even databases!
 
+![演示视频](https://user-images.githubusercontent.com/70903329/225239555-a29fa01b-e7ba-4041-bbce-187ac3f7d333.gif)
+
 ## Feature
 
 - [X] Allow ChatGPT to access your own database
@@ -27,22 +29,6 @@ A Web-UI for [Llama_index](https://github.com/jerryjliu/gpt_index) (gpt_index). 
 - [X] Multi-files support
 - [ ] More LLMPredictor
 - [ ] More Index methods
-
-## Screenshot
-
-**Ask Mode**
-![image](https://user-images.githubusercontent.com/70903329/224219711-b2ff45d7-7584-479b-9ddf-0e44a42a93b1.png)
-
-**New Google**
-
-Check the "Search Google" checkbox, the chatbot will search the web for you and generate contents based on that. Just like the New Bing, but uses Google!
-
-It's recommended to use the Balanced or Precise mode when using New Google.
-
-![image](https://user-images.githubusercontent.com/70903329/224219722-92f0d8b9-3100-4009-95b9-5d406d3d951f.png)
-
-**Construct your own index**
-![image](https://user-images.githubusercontent.com/70903329/224219727-725d865d-a3fb-40a9-ba6f-8bc2e3448d15.png)
 
 ## Usage
 
