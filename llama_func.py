@@ -118,6 +118,7 @@ def ask_ai(api_key, index_select, question,
         
     llm_predictor = LLMPredictor(llm=OpenAI(temperature=temprature, model_name="gpt-3.5-turbo-0301", prefix_messages=prefix_messages))
     
+    response = None  # Initialize response variable to avoid UnboundLocalError
     if "GPTSimpleVectorIndex" in index_select:
         index = GPTSimpleVectorIndex.load_from_disk(index_path)
         qa_prompt = QuestionAnswerPrompt(prompt_tmpl)
@@ -134,10 +135,13 @@ def ask_ai(api_key, index_select, question,
         qa_prompt = QuestionAnswerPrompt(prompt_tmpl)
         response = index.query(question, llm_predictor=llm_predictor)
 
-    print(f"Response: {response.response}")
-    
-    os.environ["OPENAI_API_KEY"] = ""
-    return response.response
+    if response is not None:
+        print(f"Response: {response.response}")
+        os.environ["OPENAI_API_KEY"] = ""
+        return response.response
+    else:
+        os.environ["OPENAI_API_KEY"] = ""
+        return None
 
 
 def search_construct(api_key, question, search_mode, index_select):
