@@ -5,6 +5,10 @@ import json
 from llama_func import *
 from utils import *
 from presets import *
+from overwrites import *
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 if os.path.exists("args.json"):
     with open("args.json", "r") as f:
@@ -15,12 +19,13 @@ else:
     args["host"] = "127.0.0.1"
     args["port"] = 7860
     args["share"] = False
-    
+
+PromptHelper.compact_text_chunks = compact_text_chunks
 
 with gr.Blocks() as demo:
     chat_context = gr.State([])
     new_google_chat_context = gr.State([])
-    
+
     with gr.Row():
         with gr.Column(scale=1):
             with gr.Box():
@@ -34,14 +39,14 @@ with gr.Blocks() as demo:
                         index_select = gr.Dropdown(choices=refresh_json_list(plain=True), value="请选择索引文件", show_label=False, multiselect=False).style(container=False)
                     with gr.Column(min_width=30, scale=1):
                         index_refresh_btn = gr.Button("🔄").style()
-        
-        
+
+
     with gr.Tab("对话"):
         with gr.Row():
             with gr.Column(scale=1):
                 chat_tone = gr.Radio(["创意", "平衡", "精确"], label="语气", type="index", value="平衡")
             with gr.Column(scale=3):
-                search_options_checkbox = gr.CheckboxGroup(label="搜索选项（需清空索引）", choices=["🔍 New Google", "🔍 New Baidu", "🔍 手动输入"])
+                search_options_checkbox = gr.CheckboxGroup(label="搜索选项（需清空索引）", choices=["🦆 New DuckDuckGo", "🔍 New Google", "🔍 New Baidu", "🔍 手动输入"])
         chatbot = gr.Chatbot()
         with gr.Row():
             with gr.Column(min_width=50, scale=1):
@@ -54,12 +59,12 @@ with gr.Blocks() as demo:
 
     with gr.Tab("对话设置"):
         with gr.Row():
-            sim_k = gr.Slider(1, 10, 1, step=1, label="优化次数", interactive=True, show_label=True)
-            tempurature = gr.Slider(0, 2, 0.5, step=0.1, label="回答灵活性", interactive=True, show_label=True)
+            sim_k = gr.Slider(1, 10, 3, step=1, label="similarity_topk", interactive=True, show_label=True)
+            tempurature = gr.Slider(0, 2, 0.5, step=0.1, label="tempurature", interactive=True, show_label=True)
         with gr.Row():
             with gr.Column():
-                tmpl_select = gr.Radio(list(prompt_tmpl_dict.keys()), value="New Default", label="Prompt模板", interactive=True)
-                prompt_tmpl = gr.Textbox(value=prompt_tmpl_dict["New Default"] ,lines=10, max_lines=40 ,show_label=False)
+                tmpl_select = gr.Radio(list(prompt_tmpl_dict.keys()), value="Default", label="Prompt模板", interactive=True)
+                prompt_tmpl = gr.Textbox(value=prompt_tmpl_dict["Default"] ,lines=10, max_lines=40 ,show_label=False)
             with gr.Column():
                 refine_select = gr.Radio(list(refine_tmpl_dict.keys()), value="Default", label="Refine模板", interactive=True)
                 refine_tmpl = gr.Textbox(value=refine_tmpl_dict["Default"] ,lines=10, max_lines=40 ,show_label=False)
@@ -87,22 +92,23 @@ with gr.Blocks() as demo:
                         num_children = gr.Slider(2, 100, 10, step=1, label="子节点数量（当前索引类型不可用）", interactive=False, show_label=True)
                         max_keywords_per_chunk = gr.Slider(1, 100, 10, step=1, label="每段关键词数量（当前索引类型不可用）", interactive=False, show_label=True)
 
-               
+
     index_refresh_btn.click(refresh_json_list, None, [index_select])
-               
+
     chat_input.submit(chat_ai, [api_key, index_select, chat_input, prompt_tmpl, refine_tmpl, sim_k, chat_tone, chat_context, chatbot, search_options_checkbox], [chat_context, chatbot])
     chat_input.submit(reset_textbox, [], [chat_input])
     chat_submit_btn.click(chat_ai, [api_key, index_select, chat_input, prompt_tmpl, refine_tmpl, sim_k, chat_tone, chat_context, chatbot, search_options_checkbox], [chat_context, chatbot])
     chat_submit_btn.click(reset_textbox, [], [chat_input])
     chat_empty_btn.click(lambda: ([], []), None, [chat_context, chatbot])
-    
+
     tmpl_select.change(change_prompt_tmpl, [tmpl_select], [prompt_tmpl])
     refine_select.change(change_refine_tmpl, [refine_select], [refine_tmpl])
 
     index_type.change(lock_params, [index_type], [num_children, max_keywords_per_chunk])
     construct_btn.click(construct_index, [api_key, upload_file, new_index_name, index_type, max_input_size, num_outputs, max_chunk_overlap, chunk_size_limit, embedding_limit, separator, num_children], [index_select])
-    
+
 
 if __name__ == "__main__":
     demo.title = "Llama Do it for You!"
-    demo.queue().launch(server_name=args["host"], server_port=args["port"], share=args["share"])
+    # demo.queue().launch(server_name=args["host"], server_port=args["port"], share=args["share"])
+    demo.queue().launch()

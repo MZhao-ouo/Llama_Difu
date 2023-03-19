@@ -3,3 +3,4 @@ llama_index
 langchain
 googlesearch-python
 baidusearch
+duckduckgo_search

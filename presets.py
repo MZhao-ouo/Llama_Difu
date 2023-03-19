@@ -1,12 +1,16 @@
-prompt_tmpl_dict = {    
+prompt_tmpl_dict = {
 "Default":
 """\
-Context information is below:
+Context information is below.
+---------------------
 {context_str}
-Given the above context, please answer the following question.
-Answer in bullet points.
-Question: {query_str}
-Answer in the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch.
+---------------------
+Using the provided context information, write a comprehensive reply to the given query.
+Make sure to cite results using [number] notation after the reference.
+If the provided context information refer to multiple subjects with the same name, write separate answers for each subject.
+Use prior knowledge only if the given context didn't provide enough information.
+Answer the question: {query_str}
+Reply in 中文
 """,
 
 "New Default":
@@ -15,7 +19,7 @@ Context information is below.
 ---------------------
 {context_str}
 ---------------------
-Given the context information and not prior knowledge, 
+Given the context information and not prior knowledge,
 answer the question: {query_str}
 Answer in bullet points.
 Answer in the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch.
@@ -60,7 +64,7 @@ Reply in the same language as the query, such as English, 中文, 日本語, Esp
 
 }
 
-refine_tmpl_dict = {    
+refine_tmpl_dict = {
 "Default":
 """\
 The original question is as follows: {query_str}

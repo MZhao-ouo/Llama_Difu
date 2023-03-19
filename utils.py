@@ -1,6 +1,7 @@
 import os
 import gradio as gr
 from zipfile import ZipFile
+import re
 from presets import *
 
 def save_index(index, index_name, exist_ok=False):
@@ -58,7 +59,7 @@ def lock_params(index_type):
         return gr.Slider.update(interactive=True, label="子节点数量"), gr.Slider.update(interactive=False, label="每段关键词数量（当前索引类型不可用）")
     elif index_type == "GPTKeywordTableIndex":
         return gr.Slider.update(interactive=False, label="子节点数量（当前索引类型不可用）"), gr.Slider.update(interactive=True, label="每段关键词数量")
-    
+
 def add_space(text):
     punctuations = {'，': '， ', '。': '。 ', '？': '？ ', '！': '！ ', '：': '： ', '；': '； '}
     for cn_punc, en_punc in punctuations.items():
@@ -95,3 +96,63 @@ def parse_text(text):
                 lines[i] = "<br>"+line
     text = "".join(lines)
     return text
+
+def parse_law_text(law_text):
+    law_dict = {}
+
+    # 获取法律名称
+    law_name = re.search(r'中华人民共和国(.*?)\n', law_text).group(1).strip()
+    law_dict['name'] = "中华人民共和国" + law_name
+
+    # 获取章节标题
+    catalog = re.findall(r'第[一二三四五六七八九十百千]+章\s+(.*?)\n', law_text)
+    law_dict['catalog'] = catalog[len(catalog)//2:]
+
+    # 获取法律内容
+    law_content = []
+    chapters = re.split(r'第[一二三四五六七八九十百千]+章\s+', law_text)[1:]
+    chapters = chapters[len(chapters)//2:]
+    for i, chapter in enumerate(chapters):
+        sections = re.split(r'第[一二三四五六七八九十百千]+节\s+', chapter)[1:]
+
+        if len(sections) > 1:
+            for j, section in enumerate(sections):
+                articles = re.findall(r'　{2}第([一二三四五六七八九十百千]+)条(.*?)\n', section)
+                lines = section.splitlines()
+                for index, article in enumerate(articles):
+                    article_content = article[1].strip()
+                    append_flag = False
+                    for line in lines:
+                        if article_content in line.strip():
+                            append_flag = True
+                            continue
+                        if index + 1 < len(articles):
+                            if articles[index + 1][1].strip() in line.strip():
+                                append_flag = False
+                        if append_flag:
+                            article_content += ("\n" + line.strip())
+                    law_content.append(
+                        [article_content.strip(), f'{law_name}，第{i + 1}章 {catalog[i]}，第{j + 1}节 {section.split()[0]}，第{article[0]}条'])
+        else:
+            articles = re.findall(r'　{2}第([一二三四五六七八九十百千]+)条(.*?)\n', chapter)
+            lines = chapter.splitlines()
+            for index, article in enumerate(articles):
+                article_content = article[1].strip()
+                append_flag = False
+                for line in lines:
+                    if line == "":
+                        continue
+                    if article_content in line.strip():
+                        append_flag = True
+                        continue
+                    if index + 1 < len(articles):
+                        if articles[index + 1][1].strip() in line.strip():
+                            append_flag = False
+                    if append_flag:
+                        article_content += ("\n" + line.strip())
+                law_content.append(
+                    [article_content.strip(), f'{law_name}，第{i + 1}章 {catalog[i]}，第{article[0]}条'])
+
+    law_dict['content'] = law_content
+
+    return law_dict
