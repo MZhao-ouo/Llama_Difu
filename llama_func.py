@@ -149,11 +149,8 @@ def chat_ai(
     logging.info(f"Question: {question}")
 
     temprature = 2 if chat_tone == 0 else 1 if chat_tone == 1 else 0.5
-    index_select = (
-        search_construct(api_key, question, search_mode, index_select)
-        if search_mode
-        else index_select
-    )
+    if search_mode:
+        index_select = search_construct(api_key, question, search_mode, index_select)
     logging.debug(f"Index: {index_select}")
 
     response = ask_ai(
@@ -302,4 +299,4 @@ def search_construct(api_key, question, search_mode, index_select):
     search_index_name = " ".join(search_terms.split(","))
     construct_index(api_key, links, search_index_name, "GPTSimpleVectorIndex")
     print(f"Index {search_index_name} constructed.")
-    return search_index_name
+    return search_index_name + "_GPTSimpleVectorIndex"
